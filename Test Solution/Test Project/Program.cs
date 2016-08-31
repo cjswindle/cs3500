@@ -13,5 +13,10 @@ namespace Test_Project
             Console.Write("Hello world!");
 
         }
+
+        static void master()
+        {
+            //testing branches and merging
+        }
     }
 }
