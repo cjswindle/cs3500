@@ -13,5 +13,10 @@ namespace Test_Project
             Console.Write("Hello world!");
 
         }
+
+        static void test()
+        {
+            //This is a new method to test branching
+        }
     }
 }
