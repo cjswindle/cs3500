@@ -14,6 +14,11 @@ namespace Test_Project
 
         }
 
+        static void test()
+        {
+            //This is a new method to test branching
+        }
+
         static void master()
         {
             //testing branches and merging
