@@ -21,7 +21,17 @@ namespace FormulaEvaluator
         public static int Evaluate(String exp, Lookup variableEvaluator)
         {
             //TO DO
+            //Creates an array of substings
             string[] substrings = Regex.Split(exp, "(\\()|(\\))|(-)|(\\+)|(\\*)|(/)");
+
+            //check if substrings are valid, if valid place in proper stack.  If unvalid, throw exception
+            //if substring is a variable, check to make sure it is proper type...if proper pass to delegate
+
+            //perform math based on condition of stacks
+
+            //once operandStack is empty return value of valueStack
+            //if operand stack is not empty and valueStack does have value throw exception
+
             return 0;
         }
 
