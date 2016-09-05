@@ -24,6 +24,7 @@ namespace FormulaEvaluator
             //Creates an array of substings
             string[] substrings = Regex.Split(exp, "(\\()|(\\))|(-)|(\\+)|(\\*)|(/)");
 
+            //use regex to check for patterns to check variables
             //check if substrings are valid, if valid place in proper stack.  If unvalid, throw exception
             //if substring is a variable, check to make sure it is proper type...if proper pass to delegate
 
