@@ -12,17 +12,17 @@ namespace EvaluatorTester
         static void Main(string[] args)
         {
             //my test expressions
-            Console.Write(Evaluator.Evaluate("5+10", s=>0));  //15
-            Console.Write(Evaluator.Evaluate("5-10", s => 0)); //-5
-            Console.Write(Evaluator.Evaluate("5*10", s => 0)); //50
-            Console.Write(Evaluator.Evaluate("5/10", s => 0));//0
-            Console.Write(Evaluator.Evaluate("10/5", s => 0));//2
-            //Console.Write(Evaluator.Evaluate("10/0", s => 0));//error
+            Console.WriteLine(Evaluator.Evaluate("5+   (10)-  7", s=>0));  //8
+            Console.WriteLine(Evaluator.Evaluate("(5+3)+ 5 * 10", s => 0)); //58
+            Console.WriteLine(Evaluator.Evaluate("5+ 3* (5 - 10)", s => 0)); //-10
+            Console.WriteLine(Evaluator.Evaluate("10/ (5- (1+2))", s => 0));//5
+            Console.WriteLine(Evaluator.Evaluate("10", s => 0));//10
+            Console.WriteLine(Evaluator.Evaluate("aBeR 1 5 0", s => 666));//150
 
 
             //provided test expressions
-            Console.Write(Evaluator.Evaluate("1+Z6-4", SimpleLookup)); // results in 17 or 7
-            Console.Write(Evaluator.Evaluate("1+Z6-4", OtherLookup)); // results in 2
+            Console.WriteLine(Evaluator.Evaluate("(2+Z5) /4", SimpleLookup)); // results in 3
+            Console.WriteLine(Evaluator.Evaluate("5 * (Z6-4  )", OtherLookup)); // results in 5
 
             Console.Read();
         }

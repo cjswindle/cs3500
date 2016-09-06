@@ -33,6 +33,11 @@ namespace FormulaEvaluator
             //check if substrings are valid, if valid place in proper stack.  If unvalid, throw exception
             foreach (string t in substrings)
             {
+                //takes care of empty token artifacts
+                if (t == "")
+                {
+                    continue;
+                }
                 //If t is Int
                 if (int.TryParse(t, out value))
                 {
@@ -57,11 +62,13 @@ namespace FormulaEvaluator
                         if (StackExtensions.isOnTop<char>(operandStack, '+'))
                         {
                             value = Add(valueStack, operandStack);
+                            valueStack.Push(value);
                         }
                         //if subtraction operator is on stack, subtract
                         else if (StackExtensions.isOnTop<char>(operandStack, '-'))
                         {
                             value = Subtract(valueStack, operandStack);
+                            valueStack.Push(value);
                         }
                         operandStack.Push(operand);
                     }
@@ -142,7 +149,7 @@ namespace FormulaEvaluator
                 {
                     throw new ArgumentException("This expression contains invalid operators or variables.");
                 }
-            }
+            }//end of for each loop
 
             if (operandStack.Count != 0)
             {
