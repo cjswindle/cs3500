@@ -22,7 +22,9 @@ namespace FormulaEvaluator
             int value;
             char operand;
 
-            //TO DO
+            //remove whitespace between digits and operands only
+            //exp = Regex.Replace(exp, @"(?<=\b\d+)\s+(?=\d+\b)", "");
+            exp = exp.Replace(" ", ""); 
             //Creates an array of substings
             string[] substrings = Regex.Split(exp, "(\\()|(\\))|(-)|(\\+)|(\\*)|(/)");
             Stack<int> valueStack = new Stack<int>();
@@ -36,13 +38,11 @@ namespace FormulaEvaluator
                 {
                     if (StackExtensions.isOnTop<char>(operandStack, '*'))
                     {
-                        operandStack.Pop();
-                        value = value * valueStack.Pop();
+                        value = Multiply(value, valueStack, operandStack);
                     }
                     else if (StackExtensions.isOnTop<char>(operandStack, '/'))
                     {
-                        operandStack.Pop();
-                        value = value * valueStack.Pop();
+                        value = Divide(value, valueStack, operandStack);
                     }
 
                     valueStack.Push(value);
@@ -56,14 +56,11 @@ namespace FormulaEvaluator
 
                     if (StackExtensions.isOnTop<char>(operandStack, '*'))
                     {
-                        operandStack.Pop();
-                        value = value * valueStack.Pop();
-
+                        value = Multiply(value, valueStack, operandStack);
                     }
                     else if (StackExtensions.isOnTop<char>(operandStack, '/'))
                     {
-                        operandStack.Pop();
-                        value = value * valueStack.Pop();
+                        value = Divide(value, valueStack, operandStack);
                     }
 
                     valueStack.Push(value);
@@ -75,17 +72,13 @@ namespace FormulaEvaluator
                     //add
                     if (StackExtensions.isOnTop<char>(operandStack, '+'))
                     {
-                        operandStack.Pop();
-                        value = valueStack.Pop() + valueStack.Pop();
-                        valueStack.Push(value);
+                        value = Add(valueStack, operandStack);
                         operandStack.Push(operand);
                     }
                     //subtract
                     else if (StackExtensions.isOnTop<char>(operandStack, '-'))
                     {
-                        operandStack.Pop();
-                        value = valueStack.Pop() - valueStack.Pop();
-                        valueStack.Push(value);
+                        value = Subtract(valueStack, operandStack);
                         operandStack.Push(operand);
                     }
                     //if t is * or / or (
@@ -99,23 +92,21 @@ namespace FormulaEvaluator
                         //add inside parenthesis
                         if (StackExtensions.isOnTop<char>(operandStack, '+'))
                         {
-                            operandStack.Pop();
-                            value = valueStack.Pop() + valueStack.Pop();
+                            value = Add(valueStack, operandStack);
                             valueStack.Push(value);
 
                         }
                         //subtract inside parenthesis
                         else if (StackExtensions.isOnTop<char>(operandStack, '-'))
                         {
-                            operandStack.Pop();
-                            value = valueStack.Pop() - valueStack.Pop();
+                            value = Subtract(valueStack, operandStack);
                             valueStack.Push(value);
                         }
 
                         //check matching ( is ontop of operand stack
                         if (!StackExtensions.isOnTop<char>(operandStack, '('))
                         {
-                            throw new Exception("A '(' isn't found where expected");
+                            throw new ArgumentException("This is an invalid expression!");
                         }
                         else
                         {
@@ -123,17 +114,24 @@ namespace FormulaEvaluator
                         }
 
                         //check operand stack for * or /
-                        if (StackExtensions.isOnTop<char>(operandStack, '*'))
+                        if (valueStack.Count >= 1)
                         {
-                            operandStack.Pop();
-                            value = valueStack.Pop() * valueStack.Pop();
-                            valueStack.Push(value);
+                            value = valueStack.Pop();
+
+                            if (StackExtensions.isOnTop<char>(operandStack, '*'))
+                            {
+                                value = Multiply(value, valueStack, operandStack);
+                                valueStack.Push(value);
+                            }
+                            else if (StackExtensions.isOnTop<char>(operandStack, '/'))
+                            {
+                                value = Divide(value, valueStack, operandStack);
+                                valueStack.Push(value);
+                            } 
                         }
-                        else if (StackExtensions.isOnTop<char>(operandStack, '/'))
+                        else
                         {
-                            operandStack.Pop();
-                            value = valueStack.Pop() / valueStack.Pop();
-                            valueStack.Push(value);
+                            throw new ArgumentException("This is an invalid Expression!");
                         }
                     }
                 }
@@ -142,6 +140,80 @@ namespace FormulaEvaluator
             //once operandStack is empty return value of valueStack
             //if operand stack is not empty and valueStack does have value throw exception
             return valueStack.Pop();
+        }
+
+        /// <summary>
+        /// Helper method called whenever Subtraction is required
+        /// </summary>
+        /// <param name="valueStack">Value Stack</param>
+        /// <param name="operandStack">Operand Stack</param>
+        /// <returns>Returns the value of the partial expression</returns>
+        private static int Subtract(Stack<int> valueStack, Stack<char> operandStack)
+        {
+            if (valueStack.Count < 2)
+            {
+                throw new ArgumentException("This is an invalid expression!");
+            }
+            int value;
+            operandStack.Pop();
+            value = valueStack.Pop() - valueStack.Pop();
+            return value;
+        }
+
+        /// <summary>
+        /// Helper method called whenever Addition is required
+        /// </summary>
+        /// <param name="valueStack">Value Stack</param>
+        /// <param name="operandStack">Operand Stack</param>
+        /// <returns>Returns the value of the partial expression</returns>
+        private static int Add(Stack<int> valueStack, Stack<char> operandStack)
+        {
+            if(valueStack.Count < 2)
+            {
+                throw new ArgumentException("This is an invalid expression!");
+            }
+            int value;
+            operandStack.Pop();
+            value = valueStack.Pop() + valueStack.Pop();
+            return value;
+        }
+
+        /// <summary>
+        /// Helper method called whenever Division is required
+        /// </summary>
+        /// <param name="valueStack">Value Stack</param>
+        /// <param name="operandStack">Operand Stack</param>
+        /// <returns>Returns the value of the partial expression</returns>
+        private static int Divide(int value, Stack<int> valueStack, Stack<char> operandStack)
+        {
+            if(value == 0)
+                                {
+                throw new DivideByZeroException("Cannot divide by zero!");
+            }
+            if (operandStack.Count == 0)
+            {
+                throw new ArgumentException("This is an invalid Expression!");
+            }
+            operandStack.Pop();
+            value = valueStack.Pop() / value;
+            return value;
+        }
+
+        /// <summary>
+        /// Helper method called whenever Multiplication is required
+        /// </summary>
+        /// <param name="valueStack">Value Stack</param>
+        /// <param name="operandStack">Operand Stack</param>
+        /// <returns>Returns the value of the partial expression</returns>
+        private static int Multiply(int value, Stack<int> valueStack, Stack<char> operandStack)
+        {
+            if(operandStack.Count == 0)
+            {
+                throw new ArgumentException("This is an invalid Expression!");
+            }
+            operandStack.Pop();
+            value = value * valueStack.Pop();
+            return value;
         }
     }
 
