@@ -11,7 +11,6 @@ namespace FormulaEvaluator
     {
         public static Stack<int> valueStack;
         public static Stack<char> operandStack;
-        public static string expression;
         public delegate int Lookup(String v);
 
         /// <summary>
@@ -23,7 +22,13 @@ namespace FormulaEvaluator
             //TO DO
             //Creates an array of substings
             string[] substrings = Regex.Split(exp, "(\\()|(\\))|(-)|(\\+)|(\\*)|(/)");
-
+            
+            foreach (string t in substrings)
+            {
+                //matches for variable
+                Regex.IsMatch(t, @"^\s*[a-zA-Z]+\d+\s*$");
+                   
+            }
             //use regex to check for patterns to check variables
             //check if substrings are valid, if valid place in proper stack.  If unvalid, throw exception
             //if substring is a variable, check to make sure it is proper type...if proper pass to delegate
