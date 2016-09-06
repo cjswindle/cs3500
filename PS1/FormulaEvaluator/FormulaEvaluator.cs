@@ -33,14 +33,12 @@ namespace FormulaEvaluator
                 //If t is Int
                 if (int.TryParse(t, out value))
                 {
-
                     if (StackExtensions.isOnTop<char>(operandStack, '*' ))
                     {
                         operandStack.Pop();
                         value = value * valueStack.Pop();
-
                     }
-                    if (StackExtensions.isOnTop<char>(operandStack, '/'))
+                    else if (StackExtensions.isOnTop<char>(operandStack, '/'))
                     {
                         operandStack.Pop();
                         value = value * valueStack.Pop();
@@ -48,10 +46,28 @@ namespace FormulaEvaluator
 
                     valueStack.Push(value);
                 }
-                
-                //if t is a variable
 
-                //if t + or -
+                //if t is a variable
+                if (Regex.IsMatch(t, @"^\s*[a-zA-Z]+\d+\s*$"))
+                {
+                    value = variableEvaluator(t);
+
+                    if (StackExtensions.isOnTop<char>(operandStack, '*'))
+                    {
+                        operandStack.Pop();
+                        value = value * valueStack.Pop();
+
+                    }
+                    else if (StackExtensions.isOnTop<char>(operandStack, '/'))
+                    {
+                        operandStack.Pop();
+                        value = value * valueStack.Pop();
+                    }
+
+                    valueStack.Push(value);
+                }
+
+                //if t is not an int or variable
                 if (char.TryParse(t, out operand))
                 {
                     //add
@@ -63,24 +79,61 @@ namespace FormulaEvaluator
                         operandStack.Push(operand);
                     }
                     //subtract
-                    if (StackExtensions.isOnTop<char>(operandStack, '-'))
+                    else if (StackExtensions.isOnTop<char>(operandStack, '-'))
                     {
                         operandStack.Pop();
                         value = valueStack.Pop() - valueStack.Pop();
                         valueStack.Push(value);
                         operandStack.Push(operand);
                     }
-                }
+                    //if t is * or / or (
+                    else if (operand == '*' || operand == '/' || operand == '(')
+                    {
+                        operandStack.Push(operand);
+                    }
+                    //if t is )
+                    else if (operand == ')')
+                    {
+                        //add inside parenthesis
+                        if (StackExtensions.isOnTop<char>(operandStack, '+'))
+                        {
+                            operandStack.Pop();
+                            value = valueStack.Pop() + valueStack.Pop();
+                            valueStack.Push(value);
 
-                //if t is * or /
+                        }
+                        //subtract inside parenthesis
+                        else if (StackExtensions.isOnTop<char>(operandStack, '-'))
+                        {
+                            operandStack.Pop();
+                            value = valueStack.Pop() - valueStack.Pop();
+                            valueStack.Push(value);
+                        }
 
-                //if t is (
+                        //check matching ( is ontop of operand stack
+                        if (!StackExtensions.isOnTop<char>(operandStack, '('))
+                        {
+                            throw new Exception("A '(' isn't found where expected");
+                        }
+                        else
+                        {
+                            operandStack.Pop();
+                        }
 
-                //if t is )
-
-                //matches for variable
-                Regex.IsMatch(t, @"^\s*[a-zA-Z]+\d+\s*$");
-                   
+                        //check operand stack for * or /
+                        if (StackExtensions.isOnTop<char>(operandStack, '*'))
+                        {
+                            operandStack.Pop();
+                            value = valueStack.Pop() * valueStack.Pop();
+                            valueStack.Push(value);
+                        }
+                        else if (StackExtensions.isOnTop<char>(operandStack, '/'))
+                        {
+                            operandStack.Pop();
+                            value = valueStack.Pop() / valueStack.Pop();
+                            valueStack.Push(value);
+                        }
+                }                   
             }
 
             //use regex to check for patterns to check variables
