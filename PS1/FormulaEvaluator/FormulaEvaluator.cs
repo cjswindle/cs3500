@@ -20,6 +20,7 @@ namespace FormulaEvaluator
         public static int Evaluate(String exp, Lookup variableEvaluator)
         {
             int value;
+            char operand;
 
             //TO DO
             //Creates an array of substings
@@ -33,12 +34,15 @@ namespace FormulaEvaluator
                 if (int.TryParse(t, out value))
                 {
 
-                    if (StackExtensions.isOnTop<char>(operandStack, '*' ) )
+                    if (StackExtensions.isOnTop<char>(operandStack, '*' ))
                     {
+                        operandStack.Pop();
                         value = value * valueStack.Pop();
+
                     }
                     if (StackExtensions.isOnTop<char>(operandStack, '/'))
                     {
+                        operandStack.Pop();
                         value = value * valueStack.Pop();
                     }
 
@@ -48,6 +52,25 @@ namespace FormulaEvaluator
                 //if t is a variable
 
                 //if t + or -
+                if (char.TryParse(t, out operand))
+                {
+                    //add
+                    if (StackExtensions.isOnTop<char>(operandStack, '+'))
+                    {
+                        operandStack.Pop();
+                        value = valueStack.Pop() + valueStack.Pop();
+                        valueStack.Push(value);
+                        operandStack.Push(operand);
+                    }
+                    //subtract
+                    if (StackExtensions.isOnTop<char>(operandStack, '-'))
+                    {
+                        operandStack.Pop();
+                        value = valueStack.Pop() - valueStack.Pop();
+                        valueStack.Push(value);
+                        operandStack.Push(operand);
+                    }
+                }
 
                 //if t is * or /
 
