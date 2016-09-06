@@ -9,8 +9,8 @@ namespace FormulaEvaluator
 {
     public static class Evaluator
     {
-        public static Stack<int> valueStack;
-        public static Stack<char> operandStack;
+        //public static Stack<int> valueStack;
+        //public static Stack<char> operandStack;
         public delegate int Lookup(String v);
 
         /// <summary>
@@ -47,38 +47,22 @@ namespace FormulaEvaluator
 
                     valueStack.Push(value);
                 }
-
-                //if t is a variable
-                //use regex to check for patterns to check variables
-                if (Regex.IsMatch(t, @"^\s*[a-zA-Z]+\d+\s*$"))
-                {
-                    value = variableEvaluator(t);
-
-                    if (StackExtensions.isOnTop<char>(operandStack, '*'))
-                    {
-                        value = Multiply(value, valueStack, operandStack);
-                    }
-                    else if (StackExtensions.isOnTop<char>(operandStack, '/'))
-                    {
-                        value = Divide(value, valueStack, operandStack);
-                    }
-
-                    valueStack.Push(value);
-                }
-
                 //if t is not an int or variable
-                if (char.TryParse(t, out operand))
+                else if (char.TryParse(t, out operand))
                 {
-                    //add
-                    if (StackExtensions.isOnTop<char>(operandStack, '+'))
+                    //if addition or subtraction
+                    if (operand == '+' || operand == '-')
                     {
-                        value = Add(valueStack, operandStack);
-                        operandStack.Push(operand);
-                    }
-                    //subtract
-                    else if (StackExtensions.isOnTop<char>(operandStack, '-'))
-                    {
-                        value = Subtract(valueStack, operandStack);
+                        //if addition operator is on stack, add
+                        if (StackExtensions.isOnTop<char>(operandStack, '+'))
+                        {
+                            value = Add(valueStack, operandStack);
+                        }
+                        //if subtraction operator is on stack, subtract
+                        else if (StackExtensions.isOnTop<char>(operandStack, '-'))
+                        {
+                            value = Subtract(valueStack, operandStack);
+                        }
                         operandStack.Push(operand);
                     }
                     //if t is * or / or (
@@ -94,7 +78,6 @@ namespace FormulaEvaluator
                         {
                             value = Add(valueStack, operandStack);
                             valueStack.Push(value);
-
                         }
                         //subtract inside parenthesis
                         else if (StackExtensions.isOnTop<char>(operandStack, '-'))
@@ -114,8 +97,13 @@ namespace FormulaEvaluator
                         }
 
                         //check operand stack for * or /
-                        if (valueStack.Count >= 1)
+                        if (StackExtensions.isOnTop<char>(operandStack, '*') || StackExtensions.isOnTop<char>(operandStack, '/'))
                         {
+                            if (valueStack.Count <2)
+                            {
+                                throw new ArgumentException("This is an invalid expression!");
+                            }
+
                             value = valueStack.Pop();
 
                             if (StackExtensions.isOnTop<char>(operandStack, '*'))
@@ -127,18 +115,66 @@ namespace FormulaEvaluator
                             {
                                 value = Divide(value, valueStack, operandStack);
                                 valueStack.Push(value);
-                            } 
+                            }  
                         }
-                        else
-                        {
-                            throw new ArgumentException("This is an invalid Expression!");
-                        }
+                        
                     }
+                    
+                }
+                //if t is a variable
+                //use regex to check for patterns to check variables
+                else if (Regex.IsMatch(t, @"^\s*[a-zA-Z]+\d+\s*$"))
+                {
+                    value = variableEvaluator(t);
+
+                    if (StackExtensions.isOnTop<char>(operandStack, '*'))
+                    {
+                        value = Multiply(value, valueStack, operandStack);
+                    }
+                    else if (StackExtensions.isOnTop<char>(operandStack, '/'))
+                    {
+                        value = Divide(value, valueStack, operandStack);
+                    }
+
+                    valueStack.Push(value);
+                }
+                else
+                {
+                    throw new ArgumentException("This expression contains invalid operators or variables.");
                 }
             }
-            
+
+            if (operandStack.Count != 0)
+            {
+                //Should only be one operand left in expression
+                if (operandStack.Count > 1)
+                {
+                    throw new ArgumentException("Too many operands in this expression!");
+                }
+                //Perform addition or subtraction
+                if (StackExtensions.isOnTop<char>(operandStack, '+'))
+                {
+                    value = Add(valueStack, operandStack);
+                }
+                else if (StackExtensions.isOnTop<char>(operandStack, '-'))
+                {
+                    value = Subtract(valueStack, operandStack);
+                }
+                //Operand left was not + or - meaning you have to many operands!
+                else
+                {
+                    throw new ArgumentException("Too many operands in this expression!");
+                }
+
+                valueStack.Push(value);
+            }
+
+            if (valueStack.Count != 1)
+            {
+                    throw new ArgumentException("You have to many values leftover!");
+            }
+
             //once operandStack is empty return value of valueStack
-            //if operand stack is not empty and valueStack does have value throw exception
             return valueStack.Pop();
         }
 
@@ -154,9 +190,10 @@ namespace FormulaEvaluator
             {
                 throw new ArgumentException("This is an invalid expression!");
             }
-            int value;
+            int value = valueStack.Pop();
             operandStack.Pop();
-            value = valueStack.Pop() - valueStack.Pop();
+
+            value = valueStack.Pop() - value;
             return value;
         }
 
