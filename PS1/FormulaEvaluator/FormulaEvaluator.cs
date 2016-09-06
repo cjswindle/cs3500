@@ -188,7 +188,7 @@ namespace FormulaEvaluator
         {
             if (valueStack.Count < 2)
             {
-                throw new ArgumentException("This is an invalid expression!");
+                throw new ArgumentException("This is an invalid expression, there is nothing to subtract!");
             }
             int value = valueStack.Pop();
             operandStack.Pop();
@@ -207,7 +207,7 @@ namespace FormulaEvaluator
         {
             if(valueStack.Count < 2)
             {
-                throw new ArgumentException("This is an invalid expression!");
+                throw new ArgumentException("This is an invalid expression, there is nothing to add!");
             }
             int value;
             operandStack.Pop();
