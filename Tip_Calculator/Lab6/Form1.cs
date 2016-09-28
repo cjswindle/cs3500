@@ -24,7 +24,7 @@ namespace Lab6
 
             if(Double.TryParse(textBox1.Text, out input))
             {
-                textBox2.Text = (input * ((1.0 + Double.Parse(tipPercenet.Text) / 100))).ToString();
+                textBox2.Text = (input * ((1.0 + double.Parse(tipPercenet.Text) / 100))).ToString("C");
             }
         }
     }
