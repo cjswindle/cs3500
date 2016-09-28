@@ -4,18 +4,23 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
+/// <summary>
+/// This Library was written by Christopher Swindle
+/// Last updated: September 7, 2016
+/// </summary>
 namespace FormulaEvaluator
 {
+
     public static class Evaluator
-    {
-        //public static Stack<int> valueStack;
-        //public static Stack<char> operandStack;
+    {   //This is a lookup delegate in order to determine the value of integers
         public delegate int Lookup(String v);
 
         /// <summary>
-        /// this is the constructor for the static Evaluator class 
+        /// This is a method used to evaluate basic valid mathmatic expressions that takes
+        /// in a delegate in order to lookup the value of variables.
         /// </summary>
+        /// <param name="exp">The mathmatical expression as a string.</param>
+        /// <param name="variableEvaluator">This is a delegate used for finding the value of a variable.</param>
         /// <returns></returns>
         public static int Evaluate(String exp, Lookup variableEvaluator)
         {
@@ -23,22 +28,23 @@ namespace FormulaEvaluator
             char operand;
 
             //remove whitespace between digits and operands only
-            //exp = Regex.Replace(exp, @"(?<=\b\d+)\s+(?=\d+\b)", "");
+            //exp = Regex.Replace(exp, @"(?<=\b\d+)\s+(?=\d+\b)", "");  This Regex expression may be used later to make a more powerful tool for removing whitespace from a string expression.
+            //Removes whitespace from string.
             exp = exp.Replace(" ", ""); 
             //Creates an array of substings
             string[] substrings = Regex.Split(exp, "(\\()|(\\))|(-)|(\\+)|(\\*)|(/)");
             Stack<int> valueStack = new Stack<int>();
             Stack<char> operandStack = new Stack<char>();
 
-            //check if substrings are valid, if valid place in proper stack.  If unvalid, throw exception
+            //Checks if substrings are valid, if valid place in proper stack.  If unvalid, throws exception
             foreach (string t in substrings)
             {
-                //takes care of empty token artifacts
+                //takes care of empty token artifacts from Regex.Split
                 if (t == "")
                 {
                     continue;
                 }
-                //If t is Int
+                //Check if t is Int
                 if (int.TryParse(t, out value))
                 {
                     if (StackExtensions.isOnTop<char>(operandStack, '*'))
@@ -52,48 +58,49 @@ namespace FormulaEvaluator
 
                     valueStack.Push(value);
                 }
-                //if t is not an int or variable
+                //Check if t is an operand
                 else if (char.TryParse(t, out operand))
                 {
-                    //if addition or subtraction
+                    //Check if operand is + or -
                     if (operand == '+' || operand == '-')
                     {
-                        //if addition operator is on stack, add
+                        //If addition operator is on stack, add
                         if (StackExtensions.isOnTop<char>(operandStack, '+'))
                         {
                             value = Add(valueStack, operandStack);
                             valueStack.Push(value);
                         }
-                        //if subtraction operator is on stack, subtract
+                        //If subtraction operator is on stack, subtract
                         else if (StackExtensions.isOnTop<char>(operandStack, '-'))
                         {
                             value = Subtract(valueStack, operandStack);
                             valueStack.Push(value);
                         }
+                        //Push t operand onto stack
                         operandStack.Push(operand);
                     }
-                    //if t is * or / or (
+                    //Check if t is * or / or (
                     else if (operand == '*' || operand == '/' || operand == '(')
                     {
                         operandStack.Push(operand);
                     }
-                    //if t is )
+                    //Check if t is )
                     else if (operand == ')')
                     {
-                        //add inside parenthesis
+                        //If addition operand is inside parenthesis
                         if (StackExtensions.isOnTop<char>(operandStack, '+'))
                         {
                             value = Add(valueStack, operandStack);
                             valueStack.Push(value);
                         }
-                        //subtract inside parenthesis
+                        //If subtraction operand is inside parenthesis
                         else if (StackExtensions.isOnTop<char>(operandStack, '-'))
                         {
                             value = Subtract(valueStack, operandStack);
                             valueStack.Push(value);
                         }
 
-                        //check matching ( is ontop of operand stack
+                        //Check matching ( is ontop of operand stack
                         if (!StackExtensions.isOnTop<char>(operandStack, '('))
                         {
                             throw new ArgumentException("This is an invalid expression!");
@@ -103,7 +110,7 @@ namespace FormulaEvaluator
                             operandStack.Pop();
                         }
 
-                        //check operand stack for * or /
+                        //Once (expression) is closed, check operand stack for * or /
                         if (StackExtensions.isOnTop<char>(operandStack, '*') || StackExtensions.isOnTop<char>(operandStack, '/'))
                         {
                             if (valueStack.Count <2)
@@ -128,8 +135,7 @@ namespace FormulaEvaluator
                     }
                     
                 }
-                //if t is a variable
-                //use regex to check for patterns to check variables
+                //If t is not a value or operand use regex to check for patterns to check if a valid variable
                 else if (Regex.IsMatch(t, @"^\s*[a-zA-Z]+\d+\s*$"))
                 {
                     value = variableEvaluator(t);
@@ -151,6 +157,7 @@ namespace FormulaEvaluator
                 }
             }//end of for each loop
 
+            //Once all tokens have been processed ensure you have one value or one partial expression left.
             if (operandStack.Count != 0)
             {
                 //Should only be one operand left in expression
